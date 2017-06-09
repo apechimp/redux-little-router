@@ -2,6 +2,7 @@
 import type { Location } from '../types';
 
 import React, { Children, Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import matchCache from '../util/match-cache';
 import generateId from '../util/generate-id';
@@ -45,10 +46,12 @@ const relativePaths = (ComposedComponent: ReactClass<*>) => {
 
     render() {
       const { children, forRoute, ...rest } = this.props;
-      const { router, parentRoute, parentId } = this.context;
-      const { store } = router;
-
-      const location = store.getState().router;
+      const {
+        parentRoute,
+        parentId,
+        router: { store: { matchRoute, matchWildcardRoute } }
+      } = this.context;
+      const { router: location } = rest
 
       const routePrefix = parentRoute && parentRoute !== '/'
         ? parentRoute : '';
@@ -62,8 +65,8 @@ const relativePaths = (ComposedComponent: ReactClass<*>) => {
         <ComposedComponent
           parentId={parentId}
           location={location}
-          matchRoute={store.matchRoute}
-          matchWildcardRoute={store.matchWildcardRoute}
+          matchRoute={matchRoute}
+          matchWildcardRoute={matchWildcardRoute}
           parentRoute={parentRoute}
           forRoute={combinedRoute}
           children={children}
@@ -124,4 +127,6 @@ const Fragment = (props: Props) => {
   return Children.only(children);
 };
 
-export default relativePaths(Fragment);
+export default connect(
+  ({ router }) => ({ router })
+)(relativePaths(Fragment));
